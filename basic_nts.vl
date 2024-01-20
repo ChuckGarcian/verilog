@@ -1,0 +1,28 @@
+module nts (a, b, cout);
+  input a, b;
+  output cout;
+  assign cout = a & b;
+endmodule
+
+module half_adder_tb ();
+  reg a;
+  reg  b;
+  wire cout;
+
+  nts dut (
+    .a(a),
+    .b(b),
+    .cout(cout)    
+    );
+
+  initial begin
+    $display ("Hello");
+    $monitor ("%b, %b, %b", a, b, cout);
+    a = 0; b = 0;
+    #10
+    a = 1; b = 1;               
+    $finish;
+  end
+  
+endmodule
+
