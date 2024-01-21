@@ -1,0 +1,34 @@
+module parity (a, b , c, cout);
+  // Declaring inputs and outputs
+  input a, b, c;
+  output cout;
+  // Declare port datatypes
+  reg c1, c2, c3, c4, tmpc;
+  always @(a, b, c) begin
+    c1 = ~a &  ~b  &  c;
+    c2 =  ~a & b  &  ~c;
+    c3 =  a &  ~b  & ~c;
+    c4 = a & b & c;
+    tmpc = c1 || c2 || c3 || c4;
+  end
+  assign cout = tmpc;                          
+endmodule
+
+module parity_tb ();
+  reg A, B, C;
+  wire OUT;
+  parity DUT (
+    .a(A),
+    .b(B),
+    .c(C),
+    .cout(OUT)
+  );
+  initial begin
+    $display ("a, b, c, out");
+    $monitor ("%b, %b, %b, %b", A, B, C, OUT);
+    A = 0;
+    B = 1;
+    C = 0;
+  end
+
+endmodule

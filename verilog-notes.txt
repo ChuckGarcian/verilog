@@ -1,0 +1,27 @@
+* Blocking assignment 
+* Non-blocking assignment
+
+Sequential Logic Blocks:
+  - Sequential logic blocks are blocks whose output(s) depends on both current 
+    inputs and the state (i.e registers)
+  - sequential logic blocks are independent and execute in parallel with each   
+    other.
+  - Examples: Initial block, always block.
+
+Initial Block:
+  - Initial block is a sequential block
+  - All initial blocks execute at the same time in parallel
+  - Initial block represents the initial start of the simulation
+
+Event Control Symbol '@':
+  - Syntax: @(param₁, param₂, ..., paramₙ)
+  - Simulation execution is halted in the local sequential block scope until    
+    changes in the parameter list occur.
+  - Said in another way, when the code reaches an @ statement, it pauses and  
+    waits for the specified event
+Constant Literals Syntax:
+  - Literal constants in verilog are of the form <bit width><radix><value>
+  - Example: 1'b1
+    * First 1, indicates bit width 1.
+    * 'b indicates binary (base 2 radix)
+    * Last one is the value

@@ -1,0 +1,91 @@
+// Chuck Garcia's 4 bit counter and test bench
+// Implementation of a  simple 4-bit up counter, 
+// * count = counter (reset, enable) 
+// * Enable is high ⟹ Count increments
+// * Reset is high ⟹ count set to 0
+// * Reset is synchronous to clock.
+
+module counter (clock, reset, enable, count);
+  // Port Declaration 
+  input clock;
+  input reset;
+  input enable;
+  output [3:0]count;
+  
+  // Driver type declaration
+  reg [3:0]count;  
+
+  always @(posedge clock) begin
+    if (reset == 1'b1) begin
+      count = 0;
+    end else if (enable == 1'b1) begin
+      count = count + 1;
+    end
+  end
+endmodule
+
+module counter_tb ();
+  reg clock;
+  reg reset;
+  reg enable;
+  wire [3:0] count;
+  
+  // Instantiate Counter Module, and Port Mapping
+  counter d0 (
+    .clock(clock),
+    .reset(reset),
+    .enable(enable),
+    .count(count)
+  );
+
+  // Drive initial values to counter input ports
+  initial begin 
+    clock = 0;
+    reset = 0;
+    enable = 0;
+  end
+
+  // Clock Generator 
+  always 
+    #5 clock = !clock;
+    
+  initial begin
+    $display ("\t\ttime,\tclk,\treset,\tenable,\tcount");
+    $monitor ("%d,\t%b,\t%b,\t%b,\t%d", $time, clock, reset, enable, count);
+
+  end
+
+  event reset_trigger;
+  event reset_done_trigger;
+  
+  // Helper logic for testing 'reset' assert and deassert on falling clock edge
+  initial begin
+    forever begin
+      @ (reset_trigger);
+      @ (negedge clock);
+      reset = 1;
+      @ (negedge clock);
+      reset = 0;
+      -> reset_done_trigger;
+    end
+  end
+  
+  // Testing Reset and Enable
+  initial begin
+    #10 ->reset_trigger;
+    @ (reset_done_trigger)
+    
+    // Assert 'enable' port and wait 10 clock cycles - count should be updating
+    @ (negedge clock);
+    enable = 1;
+    repeat (10) begin
+      @ (negedge clock);
+    end
+    enable = 0;
+  end
+
+  initial begin
+    #100 
+    $finish;
+  end
+endmodule
