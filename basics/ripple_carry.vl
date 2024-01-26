@@ -1,0 +1,101 @@
+/*
+  4-bit Ripple Carry Adder
+    - 4 Full Adders
+      - Each Full adder needs 
+*/
+
+module half_adder (a, b, sum, cout);
+  input a, b;
+  output sum, cout;
+  assign sum = a ^ b;
+  assign cout = a & b;
+endmodule
+
+module ha_tb ();
+  reg a;
+  reg b;
+  wire sum;
+  wire cout;
+
+  half_adder u0 (.a(a), .b(b), .sum(sum), .cout(cout));
+  
+  initial begin
+    a = 0;
+    b = 0;
+  end
+  
+  initial begin
+    // $display ("a\t,b\t,sum\t,cout\t");
+    // $monitor ("%b\t,%b\t,%b\t,%b\t", a, b, sum, cout);
+  end 
+
+  initial begin 
+    #10 a = 1;
+    #10 b = 0;
+    #10 b = 1;
+  end
+
+  initial begin
+    #100
+    $finish;
+  end
+
+endmodule
+
+// ################################
+
+module full_adder (a, b, cin, sum, cout);
+  input a, b, cin;
+  output sum, cout;
+
+  // Internal Registers
+  wire tmpsum, tmpc1, tmpc2;  
+
+  half_adder ha0 (.a(a), .b(b), .sum(tmpsum), .cout(tmpc1) );
+  half_adder ha1 (.a(tmpsum), .b(cin), .sum(sum), .cout(tmpc2));
+  assign cout = tmpc2 | tmpc1;
+endmodule 
+
+// module fa_tb ();
+//   reg a, b, cin;
+//   wire sum, cout;
+
+//   full_adder fa0 (.a(a), .b(b), .cin(cin), .sum(sum), .cout(cout));
+
+//   initial begin
+//     $display ("a\tb\tcin\tsum\tcout");
+//     $monitor ("%b\t%b\t%b\t%b\t%b", a, b, cin, sum, cout);
+//     a = 1;
+//     b = 1;
+//     cin = 1;
+//   end
+// endmodule
+
+module ripple_carry (num1, num2, outnum, overflow);
+  input [3:0] num1, num2;
+  output [3:0] outnum;
+  output overflow;
+  
+  wire w1, w2, w3;
+  full_adder fa0 (.a(num1[0]), .b(num2[0]), .cin (1'b0), .sum(outnum[0]), .cout(w1));
+  full_adder fa1 (.a(num1[1]), .b(num2[1]), .cin(w1), .sum(outnum[1]), .cout(w2));
+  full_adder fa2 (.a(num1[2]), .b(num2[2]), .cin(w2), .sum(outnum[2]), .cout(w3));
+  full_adder fa3 (.a(num1[3]), .b(num2[3]), .cin(w3), .sum(outnum[3]), .cout(overflow));
+  /*
+    
+  */
+endmodule
+
+module rc_tb ();
+  reg [3 : 0] num1, num2;
+  wire [3:0] outnum;
+  wire overflow;
+  ripple_carry rc0 (.num1(num1), .num2(num2), .outnum(outnum), .overflow(overflow));
+  
+  initial begin
+  $display ("num1\tnum2\toutnum\toverflow\t");
+  $monitor ("%d\t%d\t%d\t%d\t", num1, num1, outnum, overflow);
+  #10 num1 = 4'd9; 
+  #10 num2 = 4'd6;
+  end
+endmodule
