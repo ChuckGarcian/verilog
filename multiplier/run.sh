@@ -1,0 +1,1 @@
+iverilog -g2012 multiplier_tb.sv multiplier.sv 
