@@ -1,9 +1,3 @@
-
-
-
-
-
-
 module andlg # (parameter int D_SIZE) (
   input wire [D_SIZE-1 : 0] a,
   input wire [D_SIZE-1 : 0] b,
