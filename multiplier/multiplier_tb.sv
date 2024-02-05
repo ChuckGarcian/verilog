@@ -28,14 +28,21 @@ module multiplier_tb ();
     .add (add),
     .done (done)
   );
-
+  logic [3:0] testnum;
   initial begin
+    testnum = 4'b1011;
+    $monitor ("add=%b\tsh=%b\ttestnum=%b \ndone=%b \n", add, sh, testnum, done);
     @(negedge clk_in);
     rst_in = '0;
     @(negedge clk_in);
     rst_in = '1;
     adx = '1;
-    while (!done) @(negedge clk_in);
+    @(negedge clk_in);
+    while (!done) begin 
+      m = testnum[0];
+      testnum = testnum >> 1;
+      @(negedge clk_in);
+    end;
     $display ("Yay it works!");
     $finish;
   end
