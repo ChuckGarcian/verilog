@@ -2,24 +2,8 @@
   Verilog implimentation of multiplier
 */
 
-
-module multiplier_tb ();
-// module mult_controler_tb ();
-  logic m;
-  logic adx;
-  logic clk_in;
-  logic rst_in;
-
-  logic sh;
-  logic add;
-  logic done;
-
-  initial begin
-    clk_in <= 0;
-    forever #5 clk_in = ~clk_in;
-  end
-
-  mult_controler m0 (
+/*  
+mult_controler m0 (
     .m (m),
     .adx (adx),
     .clk_in (clk_in),
@@ -27,24 +11,62 @@ module multiplier_tb ();
     .sh (sh),
     .add (add),
     .done (done)
+*/
+
+module multiplier_tb ();
+// module mult_controler_tb ();
+  logic [3:0] x;
+  logic [3:0] y;  
+  logic start;
+  logic clk_in;
+  logic rst_in;
+  
+  // Outputs
+  logic[3:0] product;
+  logic done;
+  int maxCount;
+
+  multiplier  m0 (
+    .x (x),
+    .y (y),
+    .start (start),
+    .clk_in (clk_in),
+    .rst_in (rst_in),
+    .product (product),
+    .ready (done)
   );
-  logic [3:0] testnum;
+
+  event terminate_sim;
+  
   initial begin
+    @terminate_sim;
+      $display ("SIM COMPLETE");
+      #5 $finish;
+  end;
+  
+  initial begin
+    clk_in <= 0;
+    forever #5 clk_in = ~clk_in;
+  end
+
+  logic [3:0] testnum;
+  
+  initial begin
+    maxCount = 0;
+    $display ("SIM START");
     testnum = 4'b1011;
-    $monitor ("add=%b\tsh=%b\ttestnum=%b \ndone=%b \n", add, sh, testnum, done);
+    $monitor ("done=%b \n", done);
     @(negedge clk_in);
     rst_in = '0;
     @(negedge clk_in);
     rst_in = '1;
-    adx = '1;
     @(negedge clk_in);
-    while (!done) begin 
-      m = testnum[0];
-      testnum = testnum >> 1;
+    while (!done && maxCount != 10) begin
       @(negedge clk_in);
+      maxCount = maxCount + 1;
     end;
-    $display ("Yay it works!");
-    $finish;
+    ->terminate_sim;  
+  
   end
 
 endmodule

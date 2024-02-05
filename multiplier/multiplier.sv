@@ -23,10 +23,6 @@ typedef enum logic[4:0] {
   S4
 } mc_states_t;
 
-logic [3:0] cnt;
-initial assign cnt = 4;
-
-
 mc_states_t current_state;
 mc_states_t next_state;
 
@@ -132,10 +128,12 @@ module multiplier (
       tmpy <= 0;
       tmpProduct <= 0;
       load <= 0;
+      ready <= 0;
       current_state <= IDLE;
     end
     else begin
       current_state <= next_state;
+      $display ("multiplier.sv:multiplier: next_state = %b", next_state);
     end
   end;
 
