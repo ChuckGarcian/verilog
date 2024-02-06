@@ -15,12 +15,12 @@ module mult_controler (
   output logic done
 );
 
+logic [7:0] cntr;
+
 typedef enum logic[4:0] {
   IDLE = 'b0000,
-  S1 = 'b00001,
-  S2 = 'b00010,
-  S3 = 'b00011,
-  S4 = 'b00100
+  RUNNING = 'b00001,
+  DONE = 'b00010
 } mc_states_t;
 
 mc_states_t current_state;
@@ -28,13 +28,14 @@ mc_states_t next_state;
 
 always_ff @(posedge clk_in or negedge rst_in) begin
   if (!rst_in) begin
-    done <= '0;
     current_state <= IDLE;
+    cntr <= 4'd4;
+    done <= '0;
   end
   else begin
-    current_state <= next_state;
-    $display ("multiplier.mult_controller: next_state=", next_state);
-    // $display ("next_state=", next_state);
+    current_state <= next_state;  
+    if (current_state == RUNNING) cntr <= cntr - 1;
+    $display ("multiplier.mult_controller: current_state=", next_state);
   end
   
 end
@@ -42,37 +43,43 @@ end
 always_comb begin: next_state_logic
   case (current_state)
     IDLE: begin
-      if (adx) next_state = S1;
+      if (adx) next_state = RUNNING;
       else next_state = IDLE;
       
     end
-    S1:
-      next_state = S2;
-    S2:
-      next_state = S3;
-    S3:
-      next_state = S4;
-    S4:
-      next_state = S1;
+    RUNNING:
+      if (cntr <= '0) next_state = DONE;
+    DONE:
+      next_state = IDLE;
   endcase
 end
 
 // always @(posedge clk_in) begin: output_logic
   always_comb begin: output_logic
-    if (current_state == IDLE) done <= '0;
-    if (current_state == S4) done <= '1;
-    if (current_state != IDLE) begin
+    case (current_state)
+      IDLE: begin
+        done = '0;
+      end
+      
+      RUNNING: begin
       if (m == '1) begin: add_then_shift
-        add <= '1;
-        sh <= '1;
+        add = '1;
+        sh = '1;
       end
       else if (m == '0) begin: just_shift
-        add <= '0;
-        sh <= '1;
+        add = '0;
+        sh = '1;
       end
+      end
+
+      DONE: begin
+        add = '0;
+        sh = '0;
+        done = '1;
+      end
+    endcase
     end
 
-end
 endmodule: mult_controler
 
 module multiplier (
@@ -160,7 +167,7 @@ module multiplier (
         $display ("IDLE STATE MULTIPLIR");
       LOAD: begin
         $display ("LOAD STATE MULTIPLIER");
-        adx <= '1;
+        adx = '1;
       end
       RUNNING: begin  
         $display ("RUNNING STATE MULTIPLIER");
@@ -170,8 +177,8 @@ module multiplier (
       DONE: begin
         $display ("DONE STATE MULTIPLIER");
         // Copy out the outpus
-        product <= tmpProduct;        
-        ready <= 1;
+        product = tmpProduct;        
+        ready = 1;
       end
         //Do nothing
       
