@@ -57,7 +57,8 @@ always_comb begin: next_state_logic
   endcase
 end
 
-always @(posedge clk_in) begin: output_logic
+// always @(posedge clk_in) begin: output_logic
+  always_comb begin: output_logic
     if (current_state == IDLE) done <= '0;
     if (current_state == S4) done <= '1;
     if (current_state != IDLE) begin
@@ -151,8 +152,9 @@ module multiplier (
     endcase
   end;
 
-  always @(posedge clk_in) begin: output_logic 
-    
+  // always @(posedge clk_in) begin: output_logic 
+  
+  always_comb begin: output_logic
     case (current_state) 
       IDLE:
         $display ("IDLE STATE MULTIPLIR");
