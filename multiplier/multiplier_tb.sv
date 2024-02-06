@@ -43,16 +43,22 @@ module multiplier_tb ();
       $display ("SIM COMPLETE");
       #5 $finish;
   end;
-  
+  int clk_val;
   initial begin
+    clk_val = 0;
     clk_in <= 0;
-    forever #5 clk_in = ~clk_in;
+    forever begin 
+      $display ("clock_value=%d \n", clk_val);
+      #5 clk_in = ~clk_in;
+      if (clk_in ) clk_val = clk_val + 1;
+    end
   end
 
   logic [3:0] testnum;
   
   initial begin
     maxCount = 0;
+    start = '0;
     $display ("SIM START");
     testnum = 4'b1011;
     $monitor ("done=%b \n", done);
@@ -61,6 +67,7 @@ module multiplier_tb ();
     @(negedge clk_in);
     rst_in = '1;
     @(negedge clk_in);
+    start = '1;
     while (!done && maxCount != 10) begin
       @(negedge clk_in);
       maxCount = maxCount + 1;

@@ -16,11 +16,11 @@ module mult_controler (
 );
 
 typedef enum logic[4:0] {
-  IDLE,
-  S1,
-  S2,
-  S3,
-  S4
+  IDLE = 'b0000,
+  S1 = 'b00001,
+  S2 = 'b00010,
+  S3 = 'b00011,
+  S4 = 'b00100
 } mc_states_t;
 
 mc_states_t current_state;
@@ -33,7 +33,7 @@ always_ff @(posedge clk_in or negedge rst_in) begin
   end
   else begin
     current_state <= next_state;
-    $display ("current_state=", next_state);
+    $display ("multiplier.mult_controller: next_state=", next_state);
     // $display ("next_state=", next_state);
   end
   
@@ -42,8 +42,9 @@ end
 always_comb begin: next_state_logic
   case (current_state)
     IDLE: begin
-      if (adx == 0) next_state = IDLE;
-      else if (adx == '1) next_state = S1;
+      if (adx) next_state = S1;
+      else next_state = IDLE;
+      
     end
     S1:
       next_state = S2;
@@ -56,28 +57,22 @@ always_comb begin: next_state_logic
   endcase
 end
 
-always_comb begin: output_logic
-    if (current_state == IDLE) done = '0;
-    if (current_state == S4) done = '1;
+always @(posedge clk_in) begin: output_logic
+    if (current_state == IDLE) done <= '0;
+    if (current_state == S4) done <= '1;
     if (current_state != IDLE) begin
       if (m == '1) begin: add_then_shift
-        add = '1;
-        sh = '1;
+        add <= '1;
+        sh <= '1;
       end
       else if (m == '0) begin: just_shift
-        add = '0;
-        sh = '1;
+        add <= '0;
+        sh <= '1;
       end
     end
 
 end
-// always_ff @(posedge clk_in) begin
-//   if (cnt <= 0) done = 1;
-//   cnt <= cnt - 1;
 endmodule: mult_controler
-
-
-
 
 module multiplier (
   input wire[3:0] x,
@@ -116,6 +111,8 @@ module multiplier (
   mult_controler mu0 (
     .m(m),
     .adx(adx),
+    .clk_in (clk_in),
+    .rst_in (rst_in),
     .sh(sh),
     .add(add),
     .done(mdone)
@@ -129,6 +126,7 @@ module multiplier (
       tmpProduct <= 0;
       load <= 0;
       ready <= 0;
+      adx = '0;
       current_state <= IDLE;
     end
     else begin
@@ -153,21 +151,49 @@ module multiplier (
     endcase
   end;
 
-  always_comb begin: output_logic 
+  always @(posedge clk_in) begin: output_logic 
+    
     case (current_state) 
-      RUNNING:begin  
-        $display ("Running. tmpy[0] = %b", tmpy[0]);
-        tmpy = tmpy >> 1;
+      IDLE:
+        $display ("IDLE STATE MULTIPLIR");
+      LOAD: begin
+        $display ("LOAD STATE MULTIPLIER");
+        adx <= '1;
+      end
+      RUNNING: begin  
+        $display ("RUNNING STATE MULTIPLIER");
+        
+        // tmpy = tmpy >> 1;
       end
       DONE: begin
+        $display ("DONE STATE MULTIPLIER");
         // Copy out the outpus
-        product = tmpProduct;        
-        ready = 1;
+        product <= tmpProduct;        
+        ready <= 1;
       end
         //Do nothing
       
     endcase 
   end;
+
+  // always_comb @(m) begin: get_msb
+
+  // end
+
+  // always_comb @(sh) begin: shift
+  //   if (sh) begin
+  //     tmpx = tmpx >> 1;
+  //     tmpProduct = product >> 1;
+  //   end
+  // end
+
+  // always_comb @(load) begin: load_registers
+  //   if (load) begin
+  //     tmpx = x;
+  //     tmpy = y;
+  //     tmpProduct = product;
+  //   end
+  // end
 
   
   // salways_ff @()
