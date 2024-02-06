@@ -29,7 +29,7 @@ mc_states_t next_state;
 always_ff @(posedge clk_in or negedge rst_in) begin
   if (!rst_in) begin
     current_state <= IDLE;
-    cntr <= 4'd4;
+    cntr <= 4'd3;
     done <= '0;
   end
   else begin
@@ -58,10 +58,12 @@ end
   always_comb begin: output_logic
     case (current_state)
       IDLE: begin
+        $display ("mult_ctlr: IDLE STATE");
         done = '0;
       end
       
       RUNNING: begin
+      $display ("mult_ctlr: RUNNING STATE");
       if (m == '1) begin: add_then_shift
         add = '1;
         sh = '1;
@@ -73,6 +75,7 @@ end
       end
 
       DONE: begin
+        $display ("mult_ctlr: DONE STATE");  
         add = '0;
         sh = '0;
         done = '1;
@@ -113,8 +116,8 @@ module multiplier (
   // Multiplier Controler
   logic m;
   logic adx;
-  wire sh;
-  wire add;
+  logic sh;
+  logic add;
   
   mult_controler mu0 (
     .m(m),
@@ -142,7 +145,7 @@ module multiplier (
       $display ("multiplier.sv:multiplier: next_state = %b", next_state);
     end
   end;
-
+  
   // Next State Logic
   always_comb begin: next_state_logic
     case (current_state) 
@@ -163,46 +166,55 @@ module multiplier (
   
   always_comb begin: output_logic
     case (current_state) 
-      IDLE:
+      IDLE: begin
         $display ("IDLE STATE MULTIPLIR");
+      end
+      
       LOAD: begin
         $display ("LOAD STATE MULTIPLIER");
+        tmpx = x;
+        tmpy = y;
         adx = '1;
+        
       end
       RUNNING: begin  
         $display ("RUNNING STATE MULTIPLIER");
-        
-        // tmpy = tmpy >> 1;
       end
       DONE: begin
         $display ("DONE STATE MULTIPLIER");
         // Copy out the outpus
         product = tmpProduct;        
         ready = 1;
+        adx = '0;
       end
         //Do nothing
       
     endcase 
   end;
 
-  // always_comb @(m) begin: get_msb
+  // Set the M input for the controler
+  always_ff @(posedge clk_in) begin: set_msb
+    // This needed to be clocked so that prevent oversampling in mult_controler
+    // Output logic
+    m <= tmpx[0];
+    
+     $display ("m=%b\tsh=%b\tad=%b", tmpx, sh, add); 
+  end
+  
+  // Shift, Needs to be clocked to ensure non-changes in 'SH' get executed
+  always_ff @(posedge clk_in) begin: shift
+    if (add) begin
+      product <= product + tmpy;
+    end
+    
+    if (sh) begin
+      tmpx <= tmpx >> 1;
+      tmpProduct <= product >> 1;
+    end
+  
+  end
+  
 
-  // end
-
-  // always_comb @(sh) begin: shift
-  //   if (sh) begin
-  //     tmpx = tmpx >> 1;
-  //     tmpProduct = product >> 1;
-  //   end
-  // end
-
-  // always_comb @(load) begin: load_registers
-  //   if (load) begin
-  //     tmpx = x;
-  //     tmpy = y;
-  //     tmpProduct = product;
-  //   end
-  // end
 
   
   // salways_ff @()
