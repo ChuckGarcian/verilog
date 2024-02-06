@@ -63,7 +63,8 @@ end
       end
       
       RUNNING: begin
-      $display ("mult_ctlr: RUNNING STATE");
+      $display ("mult_ctlr: RUNNING STATE:m=%b", m);
+
       if (m == '1) begin: add_then_shift
         add = '1;
         sh = '1;
@@ -91,7 +92,7 @@ module multiplier (
   input wire start,
   input wire clk_in,
   input wire rst_in,
-  output logic[3:0] product,
+  output logic[7:0] product,
   output logic ready
 );
 
@@ -109,7 +110,7 @@ module multiplier (
   // Internal Registers
   logic [3:0] tmpx;
   logic [3:0] tmpy;
-  logic [3:0] tmpProduct;
+  logic [7:0] accP;
   logic load;
   wire mdone;
 
@@ -134,7 +135,7 @@ module multiplier (
     if (!rst_in) begin
       tmpx <= 0;
       tmpy <= 0;
-      tmpProduct <= 0;
+      accP <= 0;
       load <= 0;
       ready <= 0;
       adx = '0;
@@ -172,7 +173,9 @@ module multiplier (
       
       LOAD: begin
         $display ("LOAD STATE MULTIPLIER");
-        tmpx = x;
+        // tmpx = x;
+        accP[3:0] = x;
+        accP[7:4] = 0;
         tmpy = y;
         adx = '1;
         
@@ -182,8 +185,8 @@ module multiplier (
       end
       DONE: begin
         $display ("DONE STATE MULTIPLIER");
-        // Copy out the outpus
-        product = tmpProduct;        
+        // Copy out the outputs
+        product = accP;
         ready = 1;
         adx = '0;
       end
@@ -196,22 +199,23 @@ module multiplier (
   always_ff @(posedge clk_in) begin: set_msb
     // This needed to be clocked so that prevent oversampling in mult_controler
     // Output logic
-    m <= tmpx[0];
+    m <= accP[0];
     
-     $display ("m=%b\tsh=%b\tad=%b", tmpx, sh, add); 
+     $display ("m=%b\tsh=%b\tad=%b", accP, sh, add); 
   end
   
   // Shift, Needs to be clocked to ensure non-changes in 'SH' get executed
-  always_ff @(posedge clk_in) begin: shift
+  // Negede since posedge causes a race condition with retrieving the msb m
+  always_ff @(negedge clk_in) begin: shift
     if (add) begin
-      product <= product + tmpy;
+      accP[7:4] = accP[7:4] + tmpy;
     end
     
     if (sh) begin
-      tmpx <= tmpx >> 1;
-      tmpProduct <= product >> 1;
+      accP = accP >> 1;
+      
     end
-  
+    $display ("multiplier.sv:tmpproduct=%b", tmpy);
   end
   
 

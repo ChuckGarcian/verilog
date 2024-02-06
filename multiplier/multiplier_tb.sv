@@ -22,7 +22,7 @@ module multiplier_tb ();
   logic rst_in;
   
   // Outputs
-  logic[3:0] product;
+  logic[7:0] product;
   logic done;
   int maxCount;
 
@@ -55,13 +55,11 @@ module multiplier_tb ();
     end
   end
 
-  logic [3:0] testnum;
-  
   initial begin
     maxCount = 0;
     start = '0;
     x = 4'b1010;
-    y = 4'b0001;
+    y = 4'b00cd 01;
     $display ("\033[31mSIM START\033[0m");
 
     $monitor ("done=%b \n", done);
@@ -78,6 +76,8 @@ module multiplier_tb ();
       @(negedge clk_in);
       maxCount = maxCount + 1;
     end;
+    $display ("Product==%b", product);
+    $display ("Product==%d", product);
     ->terminate_sim;  
   
   end
