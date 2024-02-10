@@ -15,26 +15,28 @@ mult_controler m0 (
 
 module multiplier_tb ();
 // module mult_controler_tb ();
-  logic [3:0] x;
-  logic [3:0] y;  
-  logic start;
+  logic [10:0] gx;
+  logic [10:0] gy;  
+  logic [4:0] ex;
+  logic [4:0] ey;
   logic clk_in;
   logic rst_in;
   
   // Outputs
-  logic[7:0] product;
-  logic done;
-  int maxCount;
+  logic[21:0] product;
 
-  multiplier  m0 (
-    .x (x),
-    .y (y),
-    .start (start),
-    .clk_in (clk_in),
-    .rst_in (rst_in),
-    .product (product),
-    .ready (done)
+  int maxCount;
+  
+  piplined_integer_multiplier dut (
+    .gx(gx),
+    .gy(gy),
+    .ex(ex),
+    .ey(ey),
+    .clk_in(clk_in),
+    .rst_in(rst_in),
+    .product_out(product)
   );
+
 
   event terminate_sim;
   
@@ -57,27 +59,26 @@ module multiplier_tb ();
 
   initial begin
     maxCount = 0;
-    start = '0;
-    x = 4'b1010;
-    y = 4'b0010;
+    
+    gx = 11'b1010;
+    gy = 11'b0010;
+    ex = 5'b00001;
+    ey = 5'b00010;
     $display ("\033[31mSIM START\033[0m");
 
-    $monitor ("done=%b \n", done);
     @(negedge clk_in);
     rst_in = '0;
     @(negedge clk_in);
     rst_in = '1;
-    @(negedge clk_in);
-    start = '1;
-    #5;
     
-    start = '0;
-    while (!done && maxCount != 10) begin
+    #5;    
+    while (maxCount != 10) begin
       @(negedge clk_in);
       maxCount = maxCount + 1;
     end;
+    
     $display ("Product==%b", product);
-    $display ("Product==%d", product);
+    
     ->terminate_sim;  
   
   end
